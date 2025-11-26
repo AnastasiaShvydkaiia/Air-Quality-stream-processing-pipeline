@@ -38,8 +38,6 @@ A fully containerized **data engineering** project for real-time monitoring and 
 │       └── datasources/               
 │           └── datasource.yml          # Data source definition for Grafana 
 │
-├── mongo-data/                         # Folder to persist MongoDB data
-│
 ├── img/                                # Folder containing images for documentation
 │
 ├── docker-compose.yml                  # Docker Compose file to orchestrate the full pipeline
@@ -149,3 +147,4 @@ Spark        |http://localhost:4040|-                  |
 
 
 ```docker-compose down -v``` 
+
