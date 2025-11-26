@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 
-# Запуск Spark Job (local[*] — использует все ядра контейнера)
 echo "Starting Spark Streaming Job..."
 /opt/spark/bin/spark-submit \
     --master local[*] \
