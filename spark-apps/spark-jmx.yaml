@@ -1,0 +1,64 @@
+startDelaySeconds: 0
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+whitelistObjectNames: 
+  - "java.lang:type=Memory"
+  - "java.lang:type=GarbageCollector,name=*"
+  - "org.apache.spark:*"
+rules:
+  # JVM Heap/Non-Heap
+  - pattern: "java.lang<type=Memory><>HeapMemoryUsage"
+    name: "jvm_memory_heap_bytes"
+    type: GAUGE
+    labels:
+      area: "heap"
+    value: "$0.used"
+  - pattern: "java.lang<type=Memory><>NonHeapMemoryUsage"
+    name: "jvm_memory_nonheap_bytes"
+    type: GAUGE
+    labels:
+      area: "nonheap"
+    value: "$0.used"
+
+  # JVM Garbage Collector
+  - pattern: "java.lang<type=GarbageCollector,name=(.*)><>CollectionCount"
+    name: "jvm_gc_collection_count"
+    type: COUNTER
+    labels:
+      gc: "$1"
+    value: "$0"
+  - pattern: "java.lang<type=GarbageCollector,name=(.*)><>CollectionTime"
+    name: "jvm_gc_collection_seconds"
+    type: COUNTER
+    labels:
+      gc: "$1"
+    value: "$0"
+    valueFactor: 0.001  # из ms в секунды
+
+  # Spark Executors
+  - pattern: "org.apache.spark<name=(.*),type=ExecutorMetrics><>.*"
+    name: "spark_executor_$1"
+    type: GAUGE
+    value: "$0"
+
+  # Spark Driver
+  - pattern: "org.apache.spark<name=(.*),type=DriverMetrics><>.*"
+    name: "spark_driver_$1"
+    type: GAUGE
+    value: "$0"
+
+  # Spark Streaming
+  - pattern: "org.apache.spark<name=(.*),type=StreamingListenerBus><>.*"
+    name: "spark_streaming_$1"
+    type: GAUGE
+    value: "$0"
+
+  # Spark SQL / Shuffle / Storage
+  - pattern: "org.apache.spark<name=(.*),type=BlockManager><>MemoryUsed"
+    name: "spark_blockmanager_memory_used_bytes"
+    type: GAUGE
+    value: "$0"
+  - pattern: "org.apache.spark<name=(.*),type=BlockManager><>DiskUsed"
+    name: "spark_blockmanager_disk_used_bytes"
+    type: GAUGE
+    value: "$0"
