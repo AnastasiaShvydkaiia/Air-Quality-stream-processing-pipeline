@@ -127,7 +127,7 @@ Air quality Grafana dashboard
 
 1. **Clone the repo:**
 
-```git clone ```
+```git clone https://github.com/AnastasiaShvydkaiia/Air-Quality-stream-processing-pipeline.git```
 
 2. **Start the system:**
 
@@ -147,4 +147,5 @@ Spark        |http://localhost:4040|-                  |
 
 
 ```docker-compose down -v``` 
+
 
