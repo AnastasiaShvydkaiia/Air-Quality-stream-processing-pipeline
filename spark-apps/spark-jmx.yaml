@@ -33,7 +33,7 @@ rules:
     labels:
       gc: "$1"
     value: "$0"
-    valueFactor: 0.001  # из ms в секунды
+    valueFactor: 0.001
 
   # Spark Executors
   - pattern: "org.apache.spark<name=(.*),type=ExecutorMetrics><>.*"
@@ -62,3 +62,4 @@ rules:
     name: "spark_blockmanager_disk_used_bytes"
     type: GAUGE
     value: "$0"
+
