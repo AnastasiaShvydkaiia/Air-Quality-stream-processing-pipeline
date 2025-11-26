@@ -39,5 +39,5 @@ RUN set -eux; \
 USER spark
 WORKDIR /opt/spark-apps
 
-# По дефолту контейнер будет запускать только Spark Job
 CMD ["/opt/spark-apps/start-spark.sh"]
+
