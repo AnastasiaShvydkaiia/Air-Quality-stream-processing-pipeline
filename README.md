@@ -131,7 +131,7 @@ Air quality Grafana dashboard
 
 2. **Start the system:**
 
-```docker-compose up --build```
+```docker-compose up --build -d```
 
 3. **Access:**
 
@@ -147,5 +147,6 @@ Spark        |http://localhost:4040|-                  |
 
 
 ```docker-compose down -v``` 
+
 
 
