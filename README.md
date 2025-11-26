@@ -75,18 +75,14 @@ This project follows the **U.S. EPA (Environmental Protection Agency)** methodol
 
 For each pollutant, the sub-index $I_p$
 is calculated as:
-$$
-I_p = \frac{I_{HI} - I_{LO}}{BP_{HI} - BP_{LO}} \times (C_p - BP_{LO}) + I_{LO}
-$$
+$$I_p = \frac{I_{HI} - I_{LO}}{BP_{HI} - BP_{LO}} \times (C_p - BP_{LO}) + I_{LO}$$ \
 Where:
 - $C_p$ = observed concentration of pollutant *p*
 - $BP_{HI}$, $BP_{LO}$ = upper and lower breakpoint concentrations for *p*
 - $I_{HI}$, $I_{LO}$= corresponding AQI values for those breakpoints
 
 The **overall AQI** is the **maximum of all sub-indices**:
-$$
-AQI = \max(I_{PM2.5}, I_{PM10}, I_{NO2}, I_{O3}, I_{CO})
-$$
+$$AQI = \max(I_{PM2.5}, I_{PM10}, I_{NO2}, I_{O3}, I_{CO})$$
 
 ### U.S. EPA Breakpoints
 
@@ -150,5 +146,6 @@ Prometheus   |http://localhost:9090|-                  |
 Spark        |http://localhost:4040|-                  |
 
 4. **Stop**
+
 
 ```docker-compose down -v``` 
