@@ -125,9 +125,7 @@ Air quality Grafana dashboard
 - Docker & Docker Compose
 - Python 3.11+
 
-1. **Clone the repo:**
-
-```git clone https://github.com/AnastasiaShvydkaiia/Air-Quality-stream-processing-pipeline.git```
+1. **Download the ZIP folder and Extract it**
 
 2. **Start the system:**
 
@@ -147,6 +145,7 @@ Spark        |http://localhost:4040|-                  |
 
 
 ```docker-compose down -v``` 
+
 
 
 
