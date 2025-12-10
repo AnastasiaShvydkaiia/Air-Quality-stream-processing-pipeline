@@ -4,13 +4,36 @@ import json
 from datetime import datetime, timezone
 from kafka import KafkaProducer
 from kafka.admin import KafkaAdminClient, NewTopic
+from jsonschema import validate, ValidationError
+import logging
 import os
+
+# Set up logging for validation
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
 INTERVAL_SECONDS = 15
 KAFKA_TOPIC = 'sensor-data'
+# JSON schema for validating outgoing messages
+SENSOR_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "event_time": {"type": "string", "format": "date-time"},
+        "PM10_ug_m3": {"type": "number"},
+        "PM2_5_ug_m3": {"type": "number"},
+        "bme_pressure": {"type": "number"},
+        "temperature": {"type": "number"},
+        "humidity": {"type": "number"},
+        "CO_ppm": {"type": "number"},
+        "NO2_ppm": {"type": "number"},
+        "O3_ppb": {"type": "number"}
+    },
+    "required": ["event_time"],
+    "additionalProperties": False
+}
 
-print("Sensors are working!")
+logger.info("Sensors are working!")
 
 df = pd.read_csv('sensor_data.csv')
 
@@ -36,11 +59,18 @@ while True:
         # Drop old 'time' column 
         data.pop('time', None)
         
+        # Schema validation
+        try:
+            validate(instance=data, schema=SENSOR_SCHEMA)
+        except ValidationError as ve:
+            logger.error(f"[SCHEMA ERROR] Invalid data detected: {ve.message}")
+            logger.error(f"Skipping invalid data: {data}")
+            continue
+
         try:
             producer.send(KAFKA_TOPIC, value=data)
-            print(f"Sent: {data}")
+            logger.info(f"Sent valid data: {data}")
             producer.flush()
         except Exception as e:
-            print(f"Failed to produce message: {data} → Error: {e}")
+            logger.error(f"Failed to produce message: {data} → Error: {e}")
         time.sleep(INTERVAL_SECONDS)  
-
