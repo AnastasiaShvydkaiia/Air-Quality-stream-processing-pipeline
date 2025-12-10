@@ -38,6 +38,8 @@ A fully containerized **data engineering** project for real-time monitoring and 
 │       └── datasources/               
 │           └── datasource.yml          # Data source definition for Grafana 
 │
+├── mongo-data/                         # Folder to persist MongoDB data
+│
 ├── img/                                # Folder containing images for documentation
 │
 ├── docker-compose.yml                  # Docker Compose file to orchestrate the full pipeline
@@ -73,14 +75,18 @@ This project follows the **U.S. EPA (Environmental Protection Agency)** methodol
 
 For each pollutant, the sub-index $I_p$
 is calculated as:
-$$I_p = \frac{I_{HI} - I_{LO}}{BP_{HI} - BP_{LO}} \times (C_p - BP_{LO}) + I_{LO}$$ \
+$$
+I_p = \frac{I_{HI} - I_{LO}}{BP_{HI} - BP_{LO}} \times (C_p - BP_{LO}) + I_{LO}
+$$
 Where:
 - $C_p$ = observed concentration of pollutant *p*
 - $BP_{HI}$, $BP_{LO}$ = upper and lower breakpoint concentrations for *p*
 - $I_{HI}$, $I_{LO}$= corresponding AQI values for those breakpoints
 
 The **overall AQI** is the **maximum of all sub-indices**:
-$$AQI = \max(I_{PM2.5}, I_{PM10}, I_{NO2}, I_{O3}, I_{CO})$$
+$$
+AQI = \max(I_{PM2.5}, I_{PM10}, I_{NO2}, I_{O3}, I_{CO})
+$$
 
 ### U.S. EPA Breakpoints
 
@@ -118,6 +124,45 @@ Air quality Grafana dashboard
 - `raw_collection` -> raw data from Kafka (every 15 seconds)  
 - `agg_collection` -> hourly aggregates and calculated AQI  
 
+### **Data Validation**
+
+Kafka producer validates data using the following schema:
+
+```json
+{
+    "type": "object",
+    "properties": {
+        "event_time": {"type": "string", "format": "date-time"},
+        "PM10_ug_m3": {"type": "number"},
+        "PM2_5_ug_m3": {"type": "number"},
+        "bme_pressure": {"type": "number"},
+        "temperature": {"type": "number"},
+        "humidity": {"type": "number"},
+        "CO_ppm": {"type": "number"},
+        "NO2_ppm": {"type": "number"},
+        "O3_ppb": {"type": "number"}
+    },
+    "required": ["event_time"],
+    "additionalProperties": false
+}
+```
+Spark validates value range of the incoming data according to the following table:
+
+|Parameter|	Min|	Max|	Unit|	Description|
+|---------|----------|------|-----|--------------|
+|PM10_ug_m3|	0|	1000|	μg/m³|	Particulate Matter| 10|
+|PM2_5_ug_m3|	0|	500|	μg/m³|	Particulate Matter 2.5|
+|bme_pressure|	800|	1100|	hPa|	Atmospheric Pressure|
+|temperature|	-40|	60|	°C|	Temperature|
+|humidity|	0|	100|	%|	Relative Humidity|
+|CO_ppm|	0|	50|	ppm|	Carbon Monoxide|
+|NO2_ppm|	0|	1|	ppm|	Nitrogen Dioxide|
+|O3_ppb|	0|	500|	ppb|	Ozone|
+
+Example spark:
+
+![Dashboard](img/schema_validation_logs.png)
+
 ## Usage
 
 0. **Prerequisites**
@@ -125,11 +170,13 @@ Air quality Grafana dashboard
 - Docker & Docker Compose
 - Python 3.11+
 
-1. **Download the ZIP folder and Extract it**
+1. **Clone the repo:**
+
+```git clone ```
 
 2. **Start the system:**
 
-```docker-compose up --build -d```
+```docker-compose up --build```
 
 3. **Access:**
 
@@ -143,9 +190,4 @@ Spark        |http://localhost:4040|-                  |
 
 4. **Stop**
 
-
 ```docker-compose down -v``` 
-
-
-
-
