@@ -161,7 +161,7 @@ Spark validates value range of the incoming data according to the following tabl
 
 Example spark logs:
 
-![Dashboard](img/schema_validation_logs.png)
+![Dashboard](img/spark_logs.png)
 
 ## Usage
 
@@ -192,5 +192,6 @@ Spark        |http://localhost:4040|-                  |
 4. **Stop**
 
 ```docker-compose down -v``` 
+
 
 
