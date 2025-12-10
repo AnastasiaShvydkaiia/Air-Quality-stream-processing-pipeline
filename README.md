@@ -170,11 +170,12 @@ Example spark logs:
 - Docker & Docker Compose
 - Python 3.11+
 
-1. **Clone the repo:**
+1. **Download the zip folder with the project and unzip it**
 
-```git clone ```
+> [!NOTE]
+> In case of clonning the repo, change the encoding of the start-spark.sh file from CRLF to LF.
 
-2. **Start the system:**
+3. **Start the system:**
 
 ```docker-compose up --build```
 
@@ -191,4 +192,5 @@ Spark        |http://localhost:4040|-                  |
 4. **Stop**
 
 ```docker-compose down -v``` 
+
 
