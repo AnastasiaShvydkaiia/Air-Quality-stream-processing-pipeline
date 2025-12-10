@@ -159,7 +159,7 @@ Spark validates value range of the incoming data according to the following tabl
 |NO2_ppm|	0|	1|	ppm|	Nitrogen Dioxide|
 |O3_ppb|	0|	500|	ppb|	Ozone|
 
-Example spark:
+Example spark logs:
 
 ![Dashboard](img/schema_validation_logs.png)
 
@@ -191,3 +191,4 @@ Spark        |http://localhost:4040|-                  |
 4. **Stop**
 
 ```docker-compose down -v``` 
+
