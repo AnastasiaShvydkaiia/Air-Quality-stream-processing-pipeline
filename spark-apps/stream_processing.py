@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://mongo:27017/aq_db")
 KAFKA_TOPIC = "sensor-data"
-WINDOW_SIZE = "5 minutes"
+WINDOW_SIZE = "5 minutes" # aggregation period
 EXPECTED_SAMPLES = 20  # expected number of measurements per window: 1 measurement every 15 seconds
 THRESHOLD = 0.75  # completeness threshold
 
@@ -67,7 +67,7 @@ def range_check(col, min_val, max_val):
         F.col(col))
 
 def log_batch_stats(df, batch_id):
-    """Validates data schema for each batch"""
+    """Validates data schema and value range for each batch"""
     try:
         total_count = df.count() # Count total records
         if total_count > 0:
@@ -116,7 +116,7 @@ def log_batch_stats(df, batch_id):
                     F.isnan(F.col(problem_field)) |
                     (F.col(problem_field) < VALID_RANGES[problem_field][0]) |
                     (F.col(problem_field) > VALID_RANGES[problem_field][1])
-                ).select("event_time", problem_field).limit(3).collect()
+                ).select("event_time", problem_field).collect()
                 
                 for row in sample:
                     value = row[problem_field]
@@ -161,12 +161,6 @@ df_parsed = df.selectExpr("CAST(value AS STRING) AS json_value") \
     .select(F.from_json("json_value", schema).alias("data")) \
     .select("data.*") \
     .withColumn("event_time", F.to_timestamp("event_time", "yyyy-MM-dd HH:mm:ss"))
-
-# Log the raw data
-logging_query = df_parsed.writeStream \
-    .foreachBatch(log_batch_stats) \
-    .outputMode("append") \
-    .start()
 
 # Write raw data to Mongo
 raw_query = df_parsed.writeStream \
@@ -235,6 +229,13 @@ df_aqi = df_agg \
     .withColumn("AQI_O3", F.when(F.col("O3_count") >= min_count, udf_aqi_o3("O3_ppm_mean"))) \
     .withColumn("AQI_Max", F.greatest("AQI_PM2_5", "AQI_PM10", "AQI_CO", "AQI_NO2", "AQI_O3"))
 
+# Log the raw data
+logging_query = df_parsed.writeStream \
+    .foreachBatch(log_batch_stats) \
+    .outputMode("append") \
+    .trigger(processingTime=WINDOW_SIZE) \
+    .start()
+
 # Write aggregated data to Mongo
 agg_query = df_aqi.writeStream \
     .format("mongodb") \
@@ -255,6 +256,7 @@ logger.info(f"Window Size: {WINDOW_SIZE}")
 logger.info(f"Expected Samples per Window: {EXPECTED_SAMPLES}")
 logger.info(f"Completeness Threshold: {THRESHOLD}")
 logger.info(f"Minimum Samples for AQI: {min_count}")
+logger.info("=" * 50)
 
 # Wait for all streams to finish
 raw_query.awaitTermination()
