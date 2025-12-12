@@ -105,15 +105,17 @@ $$
 
 ![Arch](img/architecture.png)
 
-| Component  | Purpose  |
-|------------|----------|
-| **Apache Kafka (KRaft)** | Simulates real-time sensor data stream |
-| **Apache Spark Structured Streaming** | Processes streaming data, aggregates by hour, computes AQI |
-| **MongoDB** | Stores raw and aggregated sensor data |
-| **Apache Airflow** | Implements data retention policy|
-| **Prometheus** | Collects metrics from Spark, Kafka, MongoDB |
-| **Grafana** | Visualizes air quality, AQI categories, and system metrics |
-| **Docker & Docker Compose** | Containerized deployment of the entire data pipeline |
+The system follows a Kappa streaming architecture, that is composed of five layers, each performing a different function:
+
+|Layer	|Technology	|Purpose|
+|---|---|---|
+|Data Ingestion|	Apache Kafka (KRaft)|	A Python script was written to stream this data every 15 seconds to a “sensor_data” topic via Apache Kafka in KRaft mode. KRaft mode provides improved fault-tolerance and scalability.
+|Stream Processing	|Apache Spark Streaming|	Calculates AQI over a 5-minute aggregation window instead of 1-hour window in order to allow faster observation of system behavior. Late-arriving data are handled using event-time watermarking, allowing Spark to include late measurements within a 5-minute threshold. Data completeness is ensured by requiring at least 75% of the expected samples within each interval. Schema and value range validation is performed here, where incoming sensor measurements are checked against defined schema and acceptable thresholds.
+|Persistence	|MongoDB|	aq_db stores data in two collections: raw_collection for raw measurements and agg_collection for aggregated AQI outputs. 
+|Orchestration	|Apache Airflow|	Enforces a 30-day data retention policy.
+|Monitoring|	Prometheus, Grafana|	Collects metrics from each service and visualizes them in custom dashboards, supporting maintainability and observability.
+
+The complete system was containerized using Docker Compose to ensure portability and reproducibility
 
 Air quality Grafana dashboard 
 
@@ -126,7 +128,9 @@ Air quality Grafana dashboard
 
 ### **Data Validation**
 
-Kafka producer validates data using the following schema:
+The system performs three levels of validation:
+
+1. Schema Validation: Ensures JSON structure matches expected format:
 
 ```json
 {
@@ -146,7 +150,7 @@ Kafka producer validates data using the following schema:
     "additionalProperties": false
 }
 ```
-Spark validates value range of the incoming data according to the following table:
+2. Range Validation: Checks sensor values against physical limits
 
 |Parameter|	Min|	Max|	Unit|	Description|
 |---------|----------|------|-----|--------------|
@@ -159,7 +163,9 @@ Spark validates value range of the incoming data according to the following tabl
 |NO2_ppm|	0|	1|	ppm|	Nitrogen Dioxide|
 |O3_ppb|	0|	500|	ppb|	Ozone|
 
-Example spark logs:
+3. Completeness Validation: Requires 75% valid samples per window
+
+Validation results are available in spark container logs:
 
 ![Dashboard](img/spark_log.png)
 
@@ -192,6 +198,7 @@ Spark        |http://localhost:4040|-                  |
 4. **Stop**
 
 ```docker-compose down -v``` 
+
 
 
 
